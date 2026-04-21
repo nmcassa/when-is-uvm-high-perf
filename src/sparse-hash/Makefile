@@ -1,6 +1,4 @@
-all: main
+all: h200 
 
-ARCH := -arch=sm_90
-
-main: main.cu
-	nvcc main.cu -O3 $(ARCH) -o main
+h200: h200.cu
+	nvcc h200.cu -O3 -arch=sm_90 -o h200 
