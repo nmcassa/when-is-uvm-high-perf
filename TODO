@@ -1,1 +1,2 @@
 add graph creation (graph500)
+	bash to gen the .graph files
