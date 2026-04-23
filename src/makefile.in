@@ -1,0 +1,183 @@
+MODE=gcc
+DEBUG=no
+MIC=no
+VERBOSE=no
+DEBUGMIC=no
+O1=no
+
+ifeq ($(MODE),gcc)
+# ------- LINUX ----------
+ccc = gcc
+CC        = gcc
+CXX        = g++
+LD         = g++
+#FLAGS      = -Wall -W -O2 -fopenmp
+FLAGS      = -Wall -W -fopenmp
+#FLAGS      = -Wall -W
+CFLAGS     += $(FLAGS) -Wstrict-prototypes 
+CXXFLAGS   += $(FLAGS) -std=c++11
+LDFLAGS    += $(FLAGS)
+endif
+
+ifeq ($(MODE),mac)
+# ------- MAC ----------
+ccc = /usr/local/bin/gcc-6
+CC        = /usr/local/bin/gcc-6
+CXX        = /usr/local/bin/g++-6
+LD         = /usr/local/bin/g++-6
+#FLAGS      = -Wall -W -O2 -fopenmp
+FLAGS      = -Wall -W -fopenmp
+#FLAGS      = -Wall -W
+CFLAGS     += $(FLAGS) -Wstrict-prototypes 
+CXXFLAGS   += $(FLAGS) -std=c++11
+LDFLAGS    += $(FLAGS)
+endif
+
+ifeq ($(MODE),mpi)
+# ------- LINUX ----------
+ccc = mpicxx
+CC        = mpicc
+CXX        = mpicxx
+LD         = mpicxx
+FLAGS      = -Wall -W -O2 -fopenmp
+FLAGS      = -Wall -W -fopenmp
+CFLAGS     += $(FLAGS) -Wstrict-prototypes 
+CXXFLAGS   += $(FLAGS) -std=c++11
+LDFLAGS    += $(FLAGS) -L ~/lib
+endif
+
+
+ifeq ($(MODE),nvcc)
+# ------- LINUX ----------
+ccc = nvcc
+CC        = nvcc
+CXX        = nvcc
+LD         = nvcc
+#FLAGS      = -Wall -W -O2 -fopenmp
+FLAGS      = 
+CFLAGS     += $(FLAGS) -Xcompiler -Wstrict-prototypes 
+CXXFLAGS   += $(FLAGS) -Xcompiler -std=c++11
+LDFLAGS    += $(FLAGS)
+
+#CUDALDFLAGS= -L/usr/local/cuda/4.2.9/lib64  -lcudart -lcublas -lcusparse
+#CXXFLAGS+=-I/usr/local/cuda/4.2.9/include
+
+CUDALDFLAGS= -L/usr/local/cuda/lib64  -lcudart -lcublas -lcusparse 
+CUDAFLAGS=-arch sm_80 --std=c++11
+
+
+#CUDALDFLAGS= -L/usr/local/cuda/5.0/lib64  -lcudart -lcublas -lcusparse
+#CXXFLAGS+=-I/usr/local/cuda/5.0/include
+
+endif
+
+
+ifeq ($(MODE),icc)
+# ------- LINUX ----------
+ccc        = icc
+CXX=icpc
+CFLAGS     += -openmp 
+CXXFLAGS   += -openmp -std=c++11
+LDFLAGS    += -openmp 
+LD=icpc
+
+
+ifeq ($(MIC),no)
+CFLAGS += -no-offload
+CXXFLAGS += -no-offload
+LDFLAGS += -no-offload
+endif
+endif
+
+# ifeq ($(MIC),yes)
+# CFLAGS    += -offload-build -D MIC
+# CXXFLAGS  += -offload-build -D MIC
+# LDFLAGS   += -offload-build
+# ifeq ($(VERBOSE),yes)
+# CFLAGS    += -opt-report-phase:offload
+# CXXFLAGS    += -opt-report-phase:offload
+# endif
+# endif
+
+
+ifeq ($(MIC),yes)
+CFLAGS += -mmic -DMIC
+CXXFLAGS += -mmic -DMIC
+LDFLAGS += -mmic -DMIC
+MKL_LDFLAGS += -L /opt/intel/mkl/lib/mic/
+# CFLAGS    += -offload-build -D MIC
+# CXXFLAGS  += -offload-build -D MIC
+# LDFLAGS   += -offload-build
+# ifeq ($(VERBOSE),yes)
+# CFLAGS    += -opt-report-phase:offload
+# CXXFLAGS    += -opt-report-phase:offload
+# endif
+endif
+
+
+
+ifeq ($(MODE),gcc) #remove pragma warning when compiled with gcc
+ifeq ($(MIC),no)
+CFLAGS   += -Wno-unknown-pragmas
+CXXFLAGS += -Wno-unknown-pragmas
+endif
+endif
+
+ifeq ($(DEBUG),yes)
+CFLAGS    += -g -O0
+CXXFLAGS    += -g -O0
+LDFLAGS   += -g -O0
+endif
+
+
+ifeq ($(OPT),yes)
+CFLAGS    += -DNDEBUG #-march=native
+CXXFLAGS    += -DNDEBUG #-march=native
+LDFLAGS   += -DNDEBUG #-march=native
+ifeq ($(O1),yes)
+CFLAGS    += -O1
+CXXFLAGS    += -O1
+else
+CFLAGS    += -O3
+CXXFLAGS    += -O3
+endif
+endif
+
+
+
+ifeq ($(DEBUGMIC),yes)
+CFLAGS    += -offload-copts:-g
+CXXFLAGS    += -offload-copts:-g
+endif
+
+
+
+
+AR         = ar rv
+RANLIB     = ranlib
+
+INC        = 
+LIBS       = -lm
+
+
+
+.SUFFIXES:
+.SUFFIXES: .o .cpp
+.SUFFIXES: .o .c
+.SUFFIXES: .o .cu
+
+.c.o: 
+	$(ccc) $(CFLAGS) $(INCLUDES) -c $*.c  
+
+.cpp.o: 
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $*.cpp  
+
+.cu.o: 
+	$(CXX)  $(CUDAFLAGS) $(CXXFLAGS) $(INCLUDES) -c $*.cu
+
+
+depend: $(SRCS)
+	makedepend -Y -- $(INCLUDES) -- $(SRCS) 
+
+clean:
+	-rm *.o $(TARGET) *~

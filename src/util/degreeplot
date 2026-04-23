@@ -1,0 +1,9 @@
+GRAPH=$1;
+GRAPHNAME=`basename $GRAPH .graph`
+GRAPHNAME=`basename $GRAPHNAME .mtx`
+
+
+
+./rowdegree $GRAPH > row
+./coldegree $GRAPH > col
+echo "set logscale y; set key top left; set xlabel 'vertex'; set ylabel 'degree'; set terminal png; set output 'graphplot/${GRAPHNAME}-degree.png'; plot 'row' every 3000 t 'row degree', 'col' every 3000 t 'col degree'" | gnuplot
