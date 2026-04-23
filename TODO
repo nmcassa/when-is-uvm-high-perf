@@ -2,3 +2,5 @@ add Dr. Saules work
    - clean up to minimal form for SPMM
 
 scripts for locrank? I have those somewhere
+   - locrank to have script for different types of figs
+           (instead of manual copy of bash)
