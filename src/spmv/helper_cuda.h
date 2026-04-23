@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <complex>
 
 //#include <helper_string.h>
 
@@ -65,5 +66,44 @@
 #ifndef MAX
 #define MAX(a,b) (a > b ? a : b)
 #endif
+
+
+template <typename T>
+cudaDataType get_cusparse_datatype() {
+    // Check the second template parameter T
+    if constexpr (std::is_same_v<T, float>) {
+        return CUDA_R_32F;
+    } 
+    else if constexpr (std::is_same_v<T, double>) {
+        return CUDA_R_64F;
+    } 
+    else if constexpr (std::is_same_v<T, std::complex<float>>) {
+        return CUDA_C_32F;
+    } 
+    else if constexpr (std::is_same_v<T, std::complex<double>>) {
+        return CUDA_C_64F;
+    } 
+    else if constexpr (std::is_same_v<T, int>) {
+        return CUDA_R_32I;
+    }
+    else {
+        // Fallback or error for unsupported types
+        static_assert(std::is_same_v<T, float>, "Unsupported cuSPARSE type!");
+    }
+}
+
+template <typename I>
+constexpr cusparseIndexType_t get_cusparse_index_type() {
+    if constexpr (std::is_same_v<I, int32_t> || std::is_same_v<I, int>) {
+        return CUSPARSE_INDEX_32I;
+    } else if constexpr (std::is_same_v<I, int64_t> || std::is_same_v<I, long long>) {
+        return CUSPARSE_INDEX_64I;
+    } else {
+        static_assert(std::is_integral_v<I>, "Index must be a signed 32 or 64-bit integer");
+        return CUSPARSE_INDEX_32I;
+    }
+}
+
+
 
 #endif

@@ -30,10 +30,10 @@ void ReadGraphFromFile(FILE *fpin, VtxType *numofvertex, EdgeIndex **pxadj, VtxT
 {
   VtxType *adjncy,  nvtxs, fmt, readew, readvw, edge, i, ncon;
   EdgeIndex k, nedges, *xadj;
-  WeightType*adjncyw=NULL, *pvw=NULL;
+  WeightType *adjncyw=NULL, *pvw=NULL;
   char *line;
     
-    line = (char *)malloc(sizeof(char)*(MAXLINE+1));
+  line = (char *)malloc(((size_t)sizeof(char))*(MAXLINE+1));
     
     do {
         fgets(line, MAXLINE, fpin);
@@ -81,7 +81,7 @@ void ReadGraphFromFile(FILE *fpin, VtxType *numofvertex, EdgeIndex **pxadj, VtxT
             errexit("\nBuffer for fgets not big enough!\n");
         
         if (readvw) {
-            vw = (int)strtol(oldstr, &newstr, 10);
+            vw = (VtxType)strtol(oldstr, &newstr, 10);
             oldstr = newstr;
 	}
         
@@ -89,11 +89,11 @@ void ReadGraphFromFile(FILE *fpin, VtxType *numofvertex, EdgeIndex **pxadj, VtxT
             pvw[i] = vw;	
         
         for (;;) {
-            edge = (int)strtol(oldstr, &newstr, 10) -1;
+            edge = (VtxType)strtol(oldstr, &newstr, 10) -1;
             oldstr = newstr;
             
             if (readew) {
-                ewgt = (int)strtol(oldstr, &newstr, 10);
+                ewgt = (WeightType)strtol(oldstr, &newstr, 10);
                 oldstr = newstr;
 	    }
             
@@ -722,9 +722,16 @@ void ReadGraph(char *filename, VtxType *numofvertex_r, VtxType *numofvertex_c,
   if (strcmp((filename+strlen(filename)-4), ".mtx") == 0)
     {
       std::cerr<<".mtx file"<<std::endl;
-      ReadGraph_mtx<VtxType,EdgeIndex,WeightType> (filename, numofvertex_r, numofvertex_c, pxadj, padjncy, padjncyw);
-      if (ppvw != NULL)
-	std::cerr<<"vertex weight is unsupported"<<std::endl;
+
+      if constexpr (std::is_same_v<EdgeIndex, int64_t>) {
+	throw "unsupported"; //The mtx parser is written with C format string and breaks
+      }
+      else {
+      
+	ReadGraph_mtx<VtxType,EdgeIndex,WeightType> (filename, numofvertex_r, numofvertex_c, pxadj, padjncy, padjncyw);
+	if (ppvw != NULL)
+	  std::cerr<<"vertex weight is unsupported"<<std::endl;
+      }
     }
   else
   if (strcmp((filename+strlen(filename)-4), ".bin") == 0)

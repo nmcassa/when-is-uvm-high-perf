@@ -1,0 +1,39 @@
+#!/bin/sh
+
+
+REPEAT="10"
+
+GRAPHFILE="/scratch1/graphs/RandomDiag_30000000_8_3554432_512.graph"
+UNDERSUBSCRIBED="1 2 4 8 16 32 64 96 128 144 148"
+OVERSUBSCRIBED="156 160 164 168 196"
+for k in $UNDERSUBSCRIBED $OVERSUBSCRIBED ;
+do
+    ../cuda-spmm-repeated $GRAPHFILE $k $REPEAT
+done 2>&1 | tee experiment1-8.out
+
+
+GRAPHFILE="/scratch1/graphs/RandomDiag_30000000_16_3554432_512.graph"
+UNDERSUBSCRIBED="1 2 4 8 16 32 64 96 110 128 132 136 140"
+OVERSUBSCRIBED="144 148 152 156 168 196"
+for k in $UNDERSUBSCRIBED $OVERSUBSCRIBED ;
+do
+    ../cuda-spmm-repeated $GRAPHFILE $k $REPEAT
+done 2>&1 | tee experiment1-16.out
+
+
+GRAPHFILE="/scratch1/graphs/RandomDiag_30000000_32_3554432_512.graph"
+UNDERSUBSCRIBED="1 2 4 8 16 32 64 96 110 "
+OVERSUBSCRIBED="128 136 144 152 168 196"
+for k in $UNDERSUBSCRIBED $OVERSUBSCRIBED ;
+do
+    ../cuda-spmm-repeated $GRAPHFILE $k $REPEAT
+done 2>&1 | tee experiment1-32.out
+
+GRAPHFILE="/scratch1/graphs/RandomDiag_30000000_64_3554432_512.graph"
+UNDERSUBSCRIBED="1 2 4 8 16 32 64 96 "
+OVERSUBSCRIBED="110 128 132 136 144 152 168"
+for k in $UNDERSUBSCRIBED $OVERSUBSCRIBED ;
+do
+    ../cuda-spmm-repeated $GRAPHFILE $k $REPEAT
+done 2>&1 | tee experiment1-64.out
+

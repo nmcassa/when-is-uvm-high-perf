@@ -30,6 +30,10 @@ installKNC: $(TARGET)
 seq-spmv: seq-spmv.o ulib.o mmio.o
 	$(LD) $(LDFLAGS) -o $@ mmio.c ulib.o seq-spmv.o $(LIBS) 
 
+frankenstein: frankenstein.o ulib.o mmio.o
+	$(LD) $(LDFLAGS) -o $@ mmio.c ulib.o frankenstein.o $(LIBS)  $(CUDALDFLAGS)
+
+
 seq-tspmv: seq-tspmv.o ulib.o mmio.o
 	$(LD) $(LDFLAGS) -o $@ mmio.c ulib.o seq-tspmv.o $(LIBS) 
 

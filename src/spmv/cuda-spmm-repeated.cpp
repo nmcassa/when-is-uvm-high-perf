@@ -1,7 +1,7 @@
 #include "main-spmm.hpp"
 #include <immintrin.h>
 
-#define THROW_AWAY 10
+#define THROW_AWAY 0
 
 #include <cuda_runtime_api.h>
 #include <cusparse_v2.h>
@@ -31,18 +31,26 @@ int main_spmm(VertexType nVtx, EdgeType*xadj, VertexType *adj, Scalar* val, Scal
   cusparseDnMatDescr_t matrixB = 0;
   cusparseDnMatDescr_t matrixC = 0;
 
-  int *d_col, *d_row;
+  VertexType *d_col;
+  EdgeType *d_row;
   double *d_val;
   double *d_B, *d_C;
   double alpha, beta;
 
-  checkCudaErrors( cudaMalloc((void**)&d_row, (nVtx+1)*sizeof(int)) );
-  checkCudaErrors( cudaMalloc((void**)&d_col, xadj[nVtx]*sizeof(int)) );
-  checkCudaErrors( cudaMalloc((void**)&d_val, xadj[nVtx]*sizeof(double)) );
+  size_t Asize = (nVtx+1)*sizeof(EdgeType) +  xadj[nVtx]*sizeof(VertexType) + xadj[nVtx]*sizeof(Scalar);
+
+  
+  std::cerr<<"Allocating A: "<<Asize<<" ("<<Asize/1024./1024./1024.<<" GB)\n";
+
+  checkCudaErrors( cudaMalloc((void**)&d_row, (nVtx+1)*sizeof(EdgeType)) );
+  checkCudaErrors( cudaMalloc((void**)&d_col, xadj[nVtx]*sizeof(VertexType)) );
+  checkCudaErrors( cudaMalloc((void**)&d_val, xadj[nVtx]*sizeof(Scalar)) );
 
   bool uvm = true;
 
-  size_t dense_matrix_size = ((size_t)nVtx)* nbvector * sizeof(double);
+
+  
+  size_t dense_matrix_size = ((size_t)nVtx)* nbvector * sizeof(Scalar);
   std::cerr<<"Allocating B and C: "<<dense_matrix_size<<" ( "<<dense_matrix_size/1024./1024./1024.<<" GB) each\n";
   
   if (!uvm) {
@@ -52,14 +60,38 @@ int main_spmm(VertexType nVtx, EdgeType*xadj, VertexType *adj, Scalar* val, Scal
   else {
     checkCudaErrors( cudaMallocManaged((void**)&d_B, dense_matrix_size ) );
     checkCudaErrors( cudaMallocManaged((void**)&d_C, dense_matrix_size ) );
+
+    if (0) {
+      int deviceId;
+      cudaGetDevice(&deviceId);
+      cudaMemLocation gpulocation;
+      gpulocation.type = cudaMemLocationTypeDevice;
+      gpulocation.id = deviceId;
+
+      cudaMemLocation cpulocation;
+      cpulocation.type = cudaMemLocationTypeHostNuma;
+      cpulocation.id = 0;
+      
+      
+      size_t gpuchunksize = ((size_t)30000000)*nbvector*sizeof(Scalar);
+      size_t cpuchunksize = ((size_t)3554432)*nbvector*sizeof(Scalar);
+      
+      checkCudaErrors( cudaMemAdvise((void*)d_B, gpuchunksize, cudaMemAdviseSetPreferredLocation, gpulocation ));
+      checkCudaErrors( cudaMemAdvise((void*)d_B+gpuchunksize, cpuchunksize, cudaMemAdviseSetPreferredLocation, cpulocation ));
+      checkCudaErrors( cudaMemAdvise((void*)d_B+gpuchunksize, cpuchunksize, cudaMemAdviseSetAccessedBy, gpulocation ));
+    }
   }
-    cudaMemcpy(d_B, in, nVtx*nbvector*sizeof(double), cudaMemcpyHostToDevice);
+
+  std::cerr<<"B: "<<d_B<<" C: "<<d_C<<"\n";
+  
+  cudaMemcpy(d_B, in, nVtx*nbvector*sizeof(Scalar), cudaMemcpyHostToDevice);
 
   
+  
 
-  cudaMemcpy(d_row, xadj, (nVtx+1)*sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_col, adj, xadj[nVtx]*sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_val, val, xadj[nVtx]*sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_row, xadj, (nVtx+1)*sizeof(EdgeType), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_col, adj, xadj[nVtx]*sizeof(VertexType), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_val, val, xadj[nVtx]*sizeof(Scalar), cudaMemcpyHostToDevice);
 
   alpha = 1.0;
   beta = 0.0;
@@ -68,22 +100,22 @@ int main_spmm(VertexType nVtx, EdgeType*xadj, VertexType *adj, Scalar* val, Scal
   cusparseStatus = cusparseCreateCsr(&matrixA,
 				     nVtx, nVtx, xadj[nVtx],
 				     d_row, d_col, d_val,
-				     CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, //32bit index
-				     CUDA_R_64F
+				     get_cusparse_index_type<EdgeType>(), get_cusparse_index_type<VertexType>(), CUSPARSE_INDEX_BASE_ZERO,
+				     get_cusparse_datatype<Scalar>()
 				     );
   checkCusparseError(cusparseStatus);
   
   cusparseStatus = cusparseCreateDnMat(&matrixB,
 				       nVtx, nbvector,
 				       nbvector,
-				       d_B, CUDA_R_64F,
+				       d_B, get_cusparse_datatype<Scalar>(),
 				       CUSPARSE_ORDER_ROW);
   checkCusparseError(cusparseStatus);
   
   cusparseStatus = cusparseCreateDnMat(&matrixC,
 				       nVtx, nbvector,
 				       nbvector,
-				       d_C, CUDA_R_64F,
+				       d_C, get_cusparse_datatype<Scalar>(),
 				       CUSPARSE_ORDER_ROW);
   checkCusparseError(cusparseStatus);
 
@@ -94,13 +126,15 @@ int main_spmm(VertexType nVtx, EdgeType*xadj, VertexType *adj, Scalar* val, Scal
 				(cusparseConstSpMatDescr_t)matrixA, (cusparseConstDnMatDescr_t)matrixB,
 				&beta,
 				matrixC,
-				CUDA_R_64F,
-				CUSPARSE_SPMM_ALG_DEFAULT,
+				get_cusparse_datatype<Scalar>(),
+				CUSPARSE_SPMM_CSR_ALG2,
 				&bsize);
   checkCusparseError(cusparseStatus);
 
   
   std::cerr<<"buffer size: "<<bsize<<" ( "<<bsize/1024./1024./1024. <<"GB)"<<"\n";
+		     
+  
   char* buffer = NULL;
   checkCudaErrors( cudaMalloc((void**)&buffer, bsize) );
 
@@ -116,10 +150,11 @@ int main_spmm(VertexType nVtx, EdgeType*xadj, VertexType *adj, Scalar* val, Scal
 				    (cusparseConstSpMatDescr_t) matrixA, (cusparseConstDnMatDescr_t)matrixB,
 				    &beta,
 				    matrixC,
-				    CUDA_R_64F,
-				    CUSPARSE_SPMM_ALG_DEFAULT,
+				    get_cusparse_datatype<Scalar>(),
+				    CUSPARSE_SPMM_CSR_ALG2,
 				    buffer);
       checkCusparseError(cusparseStatus);
+      //std::swap(matrixB, matrixC);
     }
   checkCudaErrors( cudaDeviceSynchronize());
   util::timestamp stop;  

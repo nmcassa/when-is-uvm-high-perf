@@ -2,7 +2,7 @@
 #include <immintrin.h>
 #include "memutils.hpp"
 
-#define THROW_AWAY 10
+#define THROW_AWAY 0
 
 
 template<typename VertexType, typename EdgeType, typename Scalar, int nbvector>
@@ -79,7 +79,7 @@ int main_spmm(VertexType nVtx, EdgeType*xadj, VertexType *adj, Scalar* val, Scal
   util::timestamp start(0,0);
   util::timestamp stop(0,0);
 
-  bool coldcache = true;
+  bool coldcache = false;
 
   for (int TRY=0; TRY<THROW_AWAY+nTry; ++TRY)
     {

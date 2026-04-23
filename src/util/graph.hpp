@@ -8,8 +8,19 @@
 #define _GRAPH_H_
 
 #include "graph_impl.hpp"
+#include <cassert>
 
 //void ReadGraph(char *filename, int *numofvertex, int **pxadj, int **padjncy, int **padjncyw, int **ppvw);
+
+template<typename VertexType, typename EdgeType, typename Scalar>
+void checkGraphCoherency (VertexType nVtx, VertexType nCol,
+			  EdgeType* xadj, VertexType *adj, Scalar* val) {
+
+  assert(xadj[0] == 0);
+  for (VertexType i =1; i<=nVtx; ++i) {
+    assert (xadj[i] >= xadj[i-1]);
+  }
+}
 
 
 ///generates a dense matrix of size columns and rows
@@ -55,7 +66,7 @@ void generateBanded (VertexType *nVtx, VertexType *nCol,
 
 
   for (VertexType i=0; i<=size; ++i)
-    (*xadj)[i] = i*bandsize;
+    (*xadj)[i] = ((EdgeType)i)*bandsize;
 
 #pragma omp parallel for
   for (EdgeType i=0; i<bandsize*size; ++i) {
@@ -330,6 +341,107 @@ void generateCycle (VertexType *nVtx, VertexType *nCol,
 }
 
 
+/// generate a size x size matrix which is only the diagonal for the first clip rows.
+/// Rest of the matrix is blank
+template<typename VertexType, typename EdgeType, typename Scalar>
+void generateClipedDiagonal (VertexType *nVtx, VertexType *nCol,
+				      EdgeType** xadj, VertexType **adj, Scalar** val,
+				      VertexType size, VertexType clip) {
+  *nVtx = size;
+  *nCol = *nVtx;
+  
+  *xadj = (EdgeType*)malloc((size_t)size*sizeof(EdgeType));
+  *adj = (VertexType*)malloc(((size_t)clip)*sizeof(VertexType));
+  *val = (Scalar*)malloc(((size_t)clip)*sizeof(Scalar));
 
+
+  (*xadj)[0] = 0;
+  for (VertexType v=0;v<size;++v) {
+    (*xadj)[v+1] = (*xadj)[v];
+    if (v<clip) {
+      (*adj)[(*xadj)[v+1]] = v;
+      (*xadj)[v+1]++;
+    }
+  }
+  
+}
+
+
+///A graph is generated with a fixed degree, each edge uniformly picked.
+///
+///A second graph is just a diagonal. The two graphs are mixed to have fixed size blocks of the diagonal fixed in at regular interval.
+
+template<typename VertexType, typename EdgeType, typename Scalar>
+void generateRandomPlusDegOneBlocked (VertexType *nVtx, VertexType *nCol,
+				      EdgeType** xadj, VertexType **adj, Scalar** val,
+				      VertexType sizeRandom, VertexType degree,
+				      VertexType sizeDiag, VertexType blocksize) {
+  *nVtx = sizeRandom+sizeDiag;
+  *nCol = *nVtx;
+  
+  *xadj = (EdgeType*)malloc((((size_t)sizeRandom)+sizeDiag)*sizeof(EdgeType));
+  *adj = (VertexType*)malloc((((size_t)sizeRandom)*degree+sizeDiag)*sizeof(VertexType));
+  *val = (Scalar*)malloc((((size_t)sizeRandom)*degree+sizeDiag)*sizeof(Scalar));
+
+  for (EdgeType i =0; i<sizeRandom*degree+sizeDiag; ++i)
+    (*val)[i] = 1.;
+  
+  (*xadj)[0] = 0;
+  
+  VertexType currentVertex = 0;
+  std::vector<VertexType> neighbors = {};
+  
+  auto commitvertex = [&]() {
+    (*xadj)[currentVertex+1] = (*xadj)[currentVertex];
+      for (auto v:neighbors) {
+	(*adj)[(*xadj)[currentVertex+1]] = v;
+	(*xadj)[currentVertex+1]++;
+      }
+    ++currentVertex;
+    neighbors.clear();
+  };
+
+  auto populateNeighborsRandom = [&]() {
+    for (VertexType n=0; n<degree; ++n) {
+      neighbors.push_back(rand()%sizeRandom); //TODO: not rand think 64bit
+    }
+  };
+
+  auto diagCount = sizeRandom; //how many diag we did
+  
+  auto populateNeighborsDiag = [&]() {
+    neighbors.push_back(diagCount);
+  };
+
+  auto populateDiagBlock = [&]() {
+    for (VertexType count = 0; count<blocksize; ++count) {
+      if (diagCount >= sizeDiag+sizeRandom)
+	break;
+      populateNeighborsDiag();
+      diagCount++;
+      commitvertex();
+    }
+  };
+
+  VertexType nbDiagBlock = sizeDiag/blocksize + (sizeDiag%blocksize != 0);
+  VertexType nbRandomVertexPerBlock = sizeRandom/nbDiagBlock;
+
+  VertexType randCount = 0; //how many random we did
+  
+  auto populateRandomBlock = [&]() {
+    for (VertexType count = 0; count<nbRandomVertexPerBlock; ++count) {
+      if (randCount >= sizeRandom)
+	break;
+      populateNeighborsRandom();
+      randCount++;
+      commitvertex();
+    }
+  };
+  
+  while (currentVertex < *nVtx) {
+    populateRandomBlock();
+    populateDiagBlock();
+  }
+}
 
 #endif
