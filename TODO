@@ -5,7 +5,8 @@ add Dr. Saules work
 	- place within scripts
 		- in AD as scripts/custom_graphs.bash
    - nsight
-		- in AD as scripts/f5_nsight.bash
+		- in AD as scripts/f5_nsight.bash (execution)
+		- in AD as scripts/vis_nsight.bash (fig gen)
 
 scripts for locrank? I have those somewhere
    - locrank to have script for different types of figs
