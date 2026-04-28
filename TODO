@@ -2,6 +2,10 @@ add Dr. Saules work
    - clean up to minimal form for SPMM
    - also graphs used are in scratch space
 	- need setup to be able to reproduce
+	- place within scripts
+		- in AD as scripts/custom_graphs.bash
+   - nsight
+		- in AD as scripts/f5_nsight.bash
 
 scripts for locrank? I have those somewhere
    - locrank to have script for different types of figs
