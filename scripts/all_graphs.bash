@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-GEN_SCRIPT="./generate_graph.bash"
+GEN_SCRIPT="generate_graph.bash"
 
 # Default scale range matches run_pr_benchmark.sh
 START_SCALE="${1:-22}"
@@ -29,7 +29,7 @@ for SCALE in $(seq "$START_SCALE" "$END_SCALE"); do
     echo "Creating RMAT${SCALE}.graph"
     echo "======================================"
 
-    "$GEN_SCRIPT" "$SCALE"
+    bash "$GEN_SCRIPT" "$SCALE"
 
     echo
 done

@@ -15,8 +15,8 @@ VERTICES=$((2**SCALE))
 
 # Base project directory (assumes script is run from project root)
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-GRAPH500_DIR="$ROOT_DIR/scripts/graph500/nick_conv"
-OUTPUT_DIR="$ROOT_DIR/graphs"
+GRAPH500_DIR="$ROOT_DIR/graph500/nick_conv"
+OUTPUT_DIR="$ROOT_DIR/../graphs"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -25,7 +25,10 @@ GRAPH_FILE="$OUTPUT_DIR/RMAT${SCALE}.graph"
 
 echo "Generating edge list for scale $SCALE..."
 cd "$GRAPH500_DIR"
+make
 ./../make-edgelist -s "$SCALE" -o "$BIN_FILE"
+
+make
 
 echo "Converting to Chaco format..."
 ./bin_to_chaco "$BIN_FILE" "$GRAPH_FILE" "$VERTICES"
@@ -33,3 +36,5 @@ echo "Converting to Chaco format..."
 echo "Done."
 echo "Binary graph: $BIN_FILE"
 echo "Chaco graph:  $GRAPH_FILE"
+
+rm $BIN_FILE
