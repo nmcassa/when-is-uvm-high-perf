@@ -3,7 +3,7 @@
 #set -e
 
 EXEC=./cuda-pr
-GRAPH_DIR=../../../graphs
+GRAPH_DIR=../../graphs
 
 OUT_CSV=data/NPS_results.csv
 
