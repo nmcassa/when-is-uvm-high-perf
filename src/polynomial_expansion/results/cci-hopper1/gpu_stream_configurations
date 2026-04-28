@@ -1,0 +1,162 @@
+Testing configuration nstream=1 chunksize=524288
+2
+1073741824 1 0.196532
+Testing configuration nstream=1 chunksize=1048576
+2
+1073741824 1 0.178925
+Testing configuration nstream=1 chunksize=2097152
+2
+1073741824 1 0.168114
+Testing configuration nstream=1 chunksize=4194304
+2
+1073741824 1 0.163409
+Testing configuration nstream=1 chunksize=8388608
+2
+1073741824 1 0.161468
+Testing configuration nstream=1 chunksize=16777216
+2
+1073741824 1 0.161203
+Testing configuration nstream=1 chunksize=33554432
+2
+1073741824 1 0.159352
+Testing configuration nstream=1 chunksize=67108864
+2
+1073741824 1 0.156557
+Testing configuration nstream=1 chunksize=134217728
+2
+1073741824 1 0.151332
+Testing configuration nstream=2 chunksize=524288
+2
+1073741824 1 0.198058
+Testing configuration nstream=2 chunksize=1048576
+2
+1073741824 1 0.180085
+Testing configuration nstream=2 chunksize=2097152
+2
+1073741824 1 0.169783
+Testing configuration nstream=2 chunksize=4194304
+2
+1073741824 1 0.163786
+Testing configuration nstream=2 chunksize=8388608
+2
+1073741824 1 0.163089
+Testing configuration nstream=2 chunksize=16777216
+2
+1073741824 1 0.161318
+Testing configuration nstream=2 chunksize=33554432
+2
+1073741824 1 0.159418
+Testing configuration nstream=2 chunksize=67108864
+2
+1073741824 1 0.15662
+Testing configuration nstream=2 chunksize=134217728
+2
+1073741824 1 0.151485
+Testing configuration nstream=4 chunksize=524288
+2
+1073741824 1 0.210047
+Testing configuration nstream=4 chunksize=1048576
+2
+1073741824 1 0.188389
+Testing configuration nstream=4 chunksize=2097152
+2
+1073741824 1 0.177105
+Testing configuration nstream=4 chunksize=4194304
+2
+1073741824 1 0.173452
+Testing configuration nstream=4 chunksize=8388608
+2
+1073741824 1 0.171205
+Testing configuration nstream=4 chunksize=16777216
+2
+1073741824 1 0.169626
+Testing configuration nstream=4 chunksize=33554432
+2
+1073741824 1 0.165772
+Testing configuration nstream=4 chunksize=67108864
+2
+1073741824 1 0.161081
+Testing configuration nstream=4 chunksize=134217728
+2
+1073741824 1 0.154339
+Testing configuration nstream=8 chunksize=524288
+2
+1073741824 1 0.206853
+Testing configuration nstream=8 chunksize=1048576
+2
+1073741824 1 0.188984
+Testing configuration nstream=8 chunksize=2097152
+2
+1073741824 1 0.178254
+Testing configuration nstream=8 chunksize=4194304
+2
+1073741824 1 0.173394
+Testing configuration nstream=8 chunksize=8388608
+2
+1073741824 1 0.171604
+Testing configuration nstream=8 chunksize=16777216
+2
+1073741824 1 0.170217
+Testing configuration nstream=8 chunksize=33554432
+2
+1073741824 1 0.16633
+Testing configuration nstream=8 chunksize=67108864
+2
+1073741824 1 0.162087
+Testing configuration nstream=8 chunksize=134217728
+2
+1073741824 1 0.155145
+Testing configuration nstream=16 chunksize=524288
+2
+1073741824 1 0.209688
+Testing configuration nstream=16 chunksize=1048576
+2
+1073741824 1 0.190352
+Testing configuration nstream=16 chunksize=2097152
+2
+1073741824 1 0.179096
+Testing configuration nstream=16 chunksize=4194304
+2
+1073741824 1 0.17398
+Testing configuration nstream=16 chunksize=8388608
+2
+1073741824 1 0.172285
+Testing configuration nstream=16 chunksize=16777216
+2
+1073741824 1 0.170861
+Testing configuration nstream=16 chunksize=33554432
+2
+1073741824 1 0.167149
+Testing configuration nstream=16 chunksize=67108864
+2
+1073741824 1 0.162833
+Testing configuration nstream=16 chunksize=134217728
+2
+1073741824 1 0.156067
+Testing configuration nstream=32 chunksize=524288
+2
+1073741824 1 0.212335
+Testing configuration nstream=32 chunksize=1048576
+2
+1073741824 1 0.191738
+Testing configuration nstream=32 chunksize=2097152
+2
+1073741824 1 0.180451
+Testing configuration nstream=32 chunksize=4194304
+2
+1073741824 1 0.17524
+Testing configuration nstream=32 chunksize=8388608
+2
+1073741824 1 0.173661
+Testing configuration nstream=32 chunksize=16777216
+2
+1073741824 1 0.172249
+Testing configuration nstream=32 chunksize=33554432
+2
+1073741824 1 0.168573
+Testing configuration nstream=32 chunksize=67108864
+2
+1073741824 1 0.16455
+Testing configuration nstream=32 chunksize=134217728
+2
+1073741824 1 0.158001

@@ -1,0 +1,2 @@
+make: Nothing to be done for 'all'.
+nvcc -O3 -std=c++17 -arch=sm_80 polynomial_gpu_excluding_transfer.cu -o polynomial_gpu_excluding_transfer
