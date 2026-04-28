@@ -8,14 +8,14 @@ GRAPH_DIR=../../graphs
 OUT_CSV=data/NPS_results.csv
 
 # Parameters to sweep
-BFS_DEPTHS=(1 2 3 4)
-#BFS_DEPTHS=(3)
+BFS_DEPTHS=(1 2 3)
 UVM_MODES=(0 1)   # 0 = explicit, 1 = UVM
+SCALES=(23 25)
 
 # Write CSV header
 echo "scale,filename,nVtx,nonzero,BFS_DEPTH,use_uvm,AvgTime,NodesPerSec" > $OUT_CSV
 
-for SCALE in {22..25}; do
+for SCALE in "${SCALES[@]}"; do
     FILE="RMAT${SCALE}.graph"
     PATH_TO_GRAPH="${GRAPH_DIR}/${FILE}"
 
