@@ -15,7 +15,7 @@ VERTICES=$((2**SCALE))
 
 # Base project directory (assumes script is run from project root)
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-GRAPH500_DIR="$ROOT_DIR/graph500/nick_conv"
+GRAPH500_DIR="$ROOT_DIR/scripts/graph500/nick_conv"
 OUTPUT_DIR="$ROOT_DIR/graphs"
 
 mkdir -p "$OUTPUT_DIR"
