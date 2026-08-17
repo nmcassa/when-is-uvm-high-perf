@@ -8,10 +8,6 @@
 //        -L/usr/local/cuda/extras/CUPTI/lib64 -lcupti -Xcompiler -fopenmp
 //   (P100: -arch=sm_60   A100: -arch=sm_80)
 //
-// Build (no CUPTI):
-//   nvcc -O3 -std=c++14 -arch=sm_60 uvm_phase.cu -o uvm_phase_nocupti \
-//        -Xcompiler -fopenmp
-//
 // NOTE: CUPTI UM counters may require NVreg_RestrictProfilingToAdminUsers=0.
 //
 // ---------------------------------------------------------------------------
@@ -85,8 +81,6 @@ struct UmCounters {
   double htod, dtoh, gpuFaultGroups, cpuFault, thrash, throttle, remoteMap;
 };
 static void umZero(UmCounters &c) { memset(&c, 0, sizeof(c)); }
-
-#ifdef USE_CUPTI
 
 static UmCounters g_um;                       // region accumulator
 static uint64_t   g_t0 = ~0ULL, g_t1 = ~0ULL; // [FIX 3] region timestamp window
@@ -239,7 +233,6 @@ static UmCounters cuptiRegionEnd() {
   g_t0 = ~0ULL;                      // closed until next region
   return c;
 }
-#endif // USE_CUPTI
 
 // ---------------------------------------------------------------------------
 // Device RNG + Zipf
@@ -567,14 +560,10 @@ int main(int argc, char **argv) {
   }
 #endif
 
-#ifdef USE_CUPTI
   g_dumpUm = a.dumpUm;
   g_dumpInWin = a.dumpUmIn;
   g_dumpKind = a.dumpKind;
   cuptiSetup(a.device);
-#else
-  if (a.dumpUm) fprintf(stderr, "[warn] --dump-um requires -DUSE_CUPTI\n");
-#endif
 
   // ---- allocations -------------------------------------------------------
   uint4 *mbuf = NULL;
@@ -752,9 +741,7 @@ int main(int argc, char **argv) {
     applyHints(hotBase);
 
     // (3) timed pass. [FIX 3] counter window == timing window.
-#ifdef USE_CUPTI
     cuptiRegionBegin();
-#endif
     CUDA_CHECK(cudaEventRecord(ev0));
     k_access<<<blocks, threads>>>(mbuf, hotbuf, dperm, nGran, nHot, hotBase,
                                   pHot, a.zipfHot, a.zipfCold,
@@ -767,9 +754,7 @@ int main(int argc, char **argv) {
     CUDA_CHECK(cudaEventSynchronize(ev1));
     CUDA_CHECK(cudaDeviceSynchronize());
     CUDA_CHECK(cudaGetLastError());
-#ifdef USE_CUPTI
     row.um = cuptiRegionEnd();
-#endif
     float ms = 0.f; CUDA_CHECK(cudaEventElapsedTime(&ms, ev0, ev1));
     row.ms = (double)ms;
     clearHints(hotBase);
@@ -871,7 +856,6 @@ int main(int argc, char **argv) {
            r.coldAcc, r.coldBlks, coldBlkB / 1073741824.0,
            dOverS);
 
-#ifdef USE_CUPTI
     if (g_cuptiOk) {
       double mig = r.um.htod + r.um.dtoh;
       char b1[24], b2[24], b3[24], b4[24], b5[24], b6[24];
@@ -894,12 +878,8 @@ int main(int argc, char **argv) {
     } else {
         printf("NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,per_iter\n");
     }      
-#else
-      printf("NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,per_iter\n");
-#endif
   };
 
-#ifdef USE_CUPTI
   if (a.szHist && g_cuptiOk) {
     const char *dir[2] = { "htod", "dtoh" };
     for (int d = 0; d < 2; ++d)
@@ -908,7 +888,6 @@ int main(int argc, char **argv) {
           fprintf(stderr, "[hist] %s %7zu B  %.0f\n",
                   dir[d], (size_t)4096 << i, g_szHist[d][i]);
   }
-#endif
 
   if (a.perIter) for (int i = 0; i < a.iters; ++i) emit(i, rows[i]);
   emit(aggTag, agg);   // iter=-1 : mean over iterations

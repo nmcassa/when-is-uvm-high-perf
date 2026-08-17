@@ -11,8 +11,5 @@ uvm_phase: uvm_phase.cu
 	  -I$(CUPTI)/include -L$(CUPTI)/lib64 -lcupti \
 	  -Xlinker -rpath=$(CUPTI)/lib64
 
-nocupti: uvm_phase.cu
-	$(NVCC) $(FLAGS) $< -o uvm_phase_nocupti
-
 clean:
-	rm -f uvm_phase uvm_phase_nocupti
+	rm -f uvm_phase 
